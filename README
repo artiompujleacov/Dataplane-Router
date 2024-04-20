@@ -1,0 +1,31 @@
+Tema 1 Protocoale de Comunicatii:Router Dataplane 
+
+Pentru a implementa partea de IPv4 a proiectului, am început prin utilizarea 
+unui pointer pentru ether_header și unul pentru iphdr, extrase din buffer-ul 
+primit. Am procedat apoi la verificarea dacă tipul din header-ul Ethernet este 
+0x0800, indicând un pachet de tip IPv4. În caz afirmativ, am verificat suma de 
+control primită, iar dacă adresa IP destinatarului nu este a routerului, am 
+decrementat TTL-ul pachetului. Dacă TTL-ul este încă suficient de mare, am 
+căutat următorul hop către care trebuie trimis pachetul și l-am transmis.
+
+Pentru optimizarea căutării celui mai lung prefix (LPM), am implementat o 
+căutare binară. Am folosit funcția qsort din stdlib.h pentru a sorta tabela de 
+rutare și am definit o funcție de comparație necesară pentru aceasta. Funcția 
+de comparație verifică dacă prefixele a două intrări coincid, iar în caz 
+afirmativ, compară măștile acestora. După sortare, în timpul căutării binare,am 
+identificat intrarea din tabela de rutare care are un prefix egal cu rezultatul 
+operației "AND" pe biți dintre masca respectivei intrări și adresa IP destinatar.
+
+Pentru gestionarea ARP, am renunțat la tabela ARP statică și am adoptat una dinamică. 
+Acest lucru a necesitat implementarea funcționalităților pentru ARP Reply și ARP Request. 
+Astfel, routerul trimite un request în rețea, la care doar entitatea cu adresa IP căutată 
+răspunde, astfel își actualizează adresa MAC. După aceasta, pachetul din coadă este transmis.
+
+Protocolul ICMP este utilizat pentru a trimite un răspuns în cazul în care pachetul IPv4 
+primește un pachet cu TTL prea mic, dacă destinația este adresa routerului sau dacă nu există 
+nicio intrare în tabela de rutare care să faciliteze transmiterea pachetului. În toate aceste 
+cazuri, pachetul trimis are aceeași structură, dar tipul în cadrul header-ului ICMP este modificat 
+la 3 (ruta bună inexistentă), 11 (TTL prea mic) sau 0 (adresa IP destinatarului coincidentă cu cea 
+a routerului).
+
+Pujleacov Artiom 325CB
